@@ -68,3 +68,142 @@ h6 {
 #__next {
     isolation: isolate;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+body {
+    height: 100vh;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+}
+
+.sidebar {
+    background-color: #f4f5f7;
+    border-right: 1px solid #eeeff1;
+    box-shadow: 0 0 2px #fbfcfd;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar-content {
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 20px;
+}
+
+.task-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.list-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.new-list {
+    padding: 10px;
+    border-top: 2px solid #eeeff1;
+    box-shadow: 0 0 2px #fbfcfd;
+    background-color: #f3f4f6;
+    color: #373a3d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-active {
+    border-radius: 5px;
+    background-color: #dfe2e7;
+}
+
+.task-nav .nav-item,
+.list-nav .list {
+    padding: 5px 5px;
+}
+
+.nav-item,
+.list {
+    display: grid;
+    grid-template-columns: 1fr 10fr 1fr;
+    gap: 10px;
+    align-items: center;
+    justify-items: center;
+}
+
+.nav-item p,
+.list p {
+    justify-self: start;
+}
+
+.nav-count {
+    color: #989b9e;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+}
+
+.content-main {
+    padding: 20px;
+    flex-grow: 1;
+}
+
+.content-head {
+    display: flex;
+    justify-content: space-between;
+    margin: 0px 20px;
+}
+
+.todo-list {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.todo-item {
+    background-color: #f4f5f7;
+    border: 1px solid #eeeff1;
+    box-shadow: 0 0 2px #fbfcfd;
+    color: #373a3d;
+    padding: 15px;
+    border-radius: 5px;
+    display: grid;
+    grid-template-columns: 1fr 10fr 1fr 1fr;
+    align-items: center;
+    justify-items: center;
+}
+
+.todo-item-main {
+    justify-self: start;
+}
+
+.todo-date {
+    display: flex;
+    gap: 10px;
+}
+
+.new-todo {
+    padding: 10px;
+    border-top: 2px solid #eeeff1;
+    box-shadow: 0 0 2px #fbfcfd;
+    color: #373a3d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
