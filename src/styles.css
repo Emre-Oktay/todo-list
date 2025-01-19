@@ -165,11 +165,16 @@ body {
 .content-head {
     display: flex;
     justify-content: space-between;
-    margin: 0px 20px;
+}
+
+.content-sub-head {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
 .todo-list {
-    margin-top: 30px;
+    margin-top: 10px;
     display: flex;
     flex-direction: column;
     gap: 20px;

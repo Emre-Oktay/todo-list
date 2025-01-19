@@ -43,7 +43,7 @@ class List {
 }
 
 class Todo {
-    constructor(title = '', description = '', dueDate = false, isPriority = false, isComplete = false) {
+    constructor(title = '', description = '', dueDate = null, isPriority = false, isComplete = false) {
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
@@ -126,6 +126,7 @@ class ScreenController {
         this.todoController.lists.forEach((list, index) => {
             const listElement = document.createElement('div');
             listElement.classList.add('list');
+            listElement.dataset.index = index;
 
             const listImg = document.createElement('img');
             listImg.src = listImage;
@@ -136,25 +137,32 @@ class ScreenController {
             listText.textContent = list.name;
             listElement.appendChild(listText);
 
-            listElement.addEventListener('click', () => this.renderContent(index));
             this.listNav.appendChild(listElement);
+        });
+
+        this.listNav.addEventListener('click', (e) => {
+            const listElement = e.target.closest('.list');
+            if (listElement) {
+                const index = parseInt(listElement.dataset.index, 10);
+                this.renderListContent(index);
+            }
         });
     }
 
-    renderContent(listIndex) {
+    renderListContent(listIndex) {
         this.content.textContent = '';
 
         const list = this.todoController.getList(listIndex);
 
-        this.content.appendChild(this.renderTodoHead(list.name));
+        this.content.appendChild(this.renderTodoHead(list.name, true));
         this.content.appendChild(this.renderTodoList(list.todos));
     }
 
-    renderTodoHead(name, headingSize = 'h1', includeSettings = false) {
+    renderTodoHead(name, includeSettings = false) {
         const contentHead = document.createElement('div');
         contentHead.classList.add('content-head');
 
-        const listTitle = document.createElement(headingSize);
+        const listTitle = document.createElement('h1');
         listTitle.classList.add('title');
         listTitle.textContent = name;
         contentHead.appendChild(listTitle);
@@ -167,6 +175,23 @@ class ScreenController {
         }
 
         return contentHead;
+    }
+
+    renderTodoSubHead(name) {
+        const subHead = document.createElement('div');
+        subHead.classList.add('content-sub-head');
+
+        const listTitle = document.createElement('h2');
+        listTitle.classList.add('title');
+        listTitle.textContent = name;
+        subHead.appendChild(listTitle);
+
+        const titleSettings = document.createElement('img');
+        titleSettings.src = dotsImage;
+        titleSettings.alt = 'Settings';
+        subHead.appendChild(titleSettings);
+
+        return subHead;
     }
 
     renderTodoList(list) {
@@ -230,7 +255,6 @@ class ScreenController {
                 priorityImg.src = priorityImage;
                 priorityImg.alt = 'Set importance';
             }
-            //Add event listener to toggle priority status here
             priorityImg.addEventListener('click', () => {
                 todo.isPriority = !todo.isPriority;
                 if (todo.isPriority) {
@@ -257,92 +281,43 @@ class ScreenController {
     }
 
     addEventListeners() {
-        this.todayNav.addEventListener('click', () => this.renderToday());
-        this.upcomingNav.addEventListener('click', () => this.renderUpcoming());
-        this.importantNav.addEventListener('click', () => this.renderImportant());
-        this.activeNav.addEventListener('click', () => this.renderActive());
-        this.completedNav.addEventListener('click', () => this.renderCompleted());
+        this.todayNav.addEventListener('click', () =>
+            this.renderFilteredTodos('Today', (todo) => isToday(todo.dueDate))
+        );
+        this.upcomingNav.addEventListener('click', () => {
+            const today = new Date();
+            const sevenDaysFromNow = addDays(today, 7);
+            this.renderFilteredTodos(
+                'Upcoming',
+                (todo) => todo.dueDate && isWithinInterval(todo.dueDate, { start: today, end: sevenDaysFromNow })
+            );
+        });
+        this.importantNav.addEventListener('click', () =>
+            this.renderFilteredTodos('Important', (todo) => todo.isPriority)
+        );
+        this.activeNav.addEventListener('click', () => this.renderFilteredTodos('Active', (todo) => !todo.isComplete));
+        this.completedNav.addEventListener('click', () =>
+            this.renderFilteredTodos('Completed', (todo) => todo.isComplete)
+        );
 
         this.newListButton.addEventListener('click', () => this.renderNewListModal());
         this.newTodoButton.addEventListener('click', () => this.renderNewTodoModal());
     }
 
-    renderToday() {
+    renderFilteredTodos(title, filterFn) {
         this.content.textContent = '';
-        const todayHead = this.renderTodoHead('Today');
-        this.content.appendChild(todayHead);
+        const head = this.renderTodoHead(title);
+        this.content.appendChild(head);
 
         const lists = this.todoController.getAllLists();
         lists.forEach((list) => {
-            const todoHead = this.renderTodoHead(list.name, 'h2');
-            this.content.appendChild(todoHead);
-            const filteredList = list.todos.filter((todo) => todo.dueDate && isToday(todo.dueDate));
-            const todoList = this.renderTodoList(filteredList);
-            this.content.appendChild(todoList);
-        });
-    }
-
-    renderUpcoming() {
-        this.content.textContent = '';
-        const upcomingHead = this.renderTodoHead('Upcoming');
-        this.content.appendChild(upcomingHead);
-
-        const lists = this.todoController.getAllLists();
-        const today = new Date();
-        const sevenDaysFromNow = addDays(today, 7);
-        lists.forEach((list) => {
-            const todoHead = this.renderTodoHead(list.name, 'h2');
-            this.content.appendChild(todoHead);
-            const filteredList = list.todos.filter(
-                (todo) => todo.dueDate && isWithinInterval(todo.dueDate, { start: today, end: sevenDaysFromNow })
-            );
-            const todoList = this.renderTodoList(filteredList);
-            this.content.appendChild(todoList);
-        });
-    }
-
-    renderImportant() {
-        this.content.textContent = '';
-        const importantHead = this.renderTodoHead('Important');
-        this.content.appendChild(importantHead);
-
-        const lists = this.todoController.getAllLists();
-        lists.forEach((list) => {
-            const todoHead = this.renderTodoHead(list.name, 'h2');
-            this.content.appendChild(todoHead);
-            const filteredList = list.todos.filter((todo) => todo.isPriority);
-            const todoList = this.renderTodoList(filteredList);
-            this.content.appendChild(todoList);
-        });
-    }
-
-    renderActive() {
-        this.content.textContent = '';
-        const activeHead = this.renderTodoHead('Active');
-        this.content.appendChild(activeHead);
-
-        const lists = this.todoController.getAllLists();
-        lists.forEach((list) => {
-            const todoHead = this.renderTodoHead(list.name, 'h2');
-            this.content.appendChild(todoHead);
-            const filteredList = list.todos.filter((todo) => !todo.isComplete);
-            const todoList = this.renderTodoList(filteredList);
-            this.content.appendChild(todoList);
-        });
-    }
-
-    renderCompleted() {
-        this.content.textContent = '';
-        const completedHead = this.renderTodoHead('Completed');
-        this.content.appendChild(completedHead);
-
-        const lists = this.todoController.getAllLists();
-        lists.forEach((list) => {
-            const todoHead = this.renderTodoHead(list.name, 'h2');
-            this.content.appendChild(todoHead);
-            const filteredList = list.todos.filter((todo) => todo.isComplete);
-            const todoList = this.renderTodoList(filteredList);
-            this.content.appendChild(todoList);
+            const filteredTodos = list.todos.filter(filterFn);
+            if (filteredTodos.length > 0) {
+                const subHead = this.renderTodoSubHead(list.name);
+                this.content.appendChild(subHead);
+                const todoList = this.renderTodoList(filteredTodos);
+                this.content.appendChild(todoList);
+            }
         });
     }
 }
@@ -364,6 +339,9 @@ todoController
     .getList(0)
     .addTodo(new Todo('Example todo with priority', 'This is an example todo', false, true, false));
 todoController.getList(0).addTodo(new Todo('Example completed todo', 'This is an example todo', false, false, true));
+
+todoController.addList('Hobbies');
+todoController.getList(1).addTodo(new Todo('Example todo for hobbies', 'This is an example todo', false, false, false));
 
 document.addEventListener('DOMContentLoaded', () => {
     screenController.init();
