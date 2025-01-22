@@ -7,6 +7,46 @@
     </head>
     <body>
         <div class="container">
+            <dialog id="list-dialog" hidden>
+                <div class="modal-content">
+                    <div class="modal-head">
+                        <h2 id="list-modal-title">Create a New List</h2>
+                        <span class="close-button" id="list-close-button">&times;</span>
+                    </div>
+
+                    <form id="list-form">
+                        <label for="list-title">Title</label>
+                        <input type="text" id="list-title" name="list-title" required />
+                        <button type="submit" id="save-list">Save</button>
+                    </form>
+                </div>
+            </dialog>
+            <dialog id="todo-dialog" hidden>
+                <div class="modal-content">
+                    <div class="modal-head">
+                        <h2 id="todo-modal-title">Create a New Todo</h2>
+                        <span class="close-button" id="todo-close-button">&times;</span>
+                    </div>
+
+                    <form id="todo-form">
+                        <label for="todo-title">Title</label>
+                        <input type="text" id="todo-title" name="todo-title" required />
+
+                        <label for="todo-description">Description</label>
+                        <textarea id="todo-description" name="todo-description"></textarea>
+
+                        <label for="todo-due-date">Due Date</label>
+                        <input type="date" id="todo-due-date" name="todo-due-date" />
+
+                        <label>
+                            <input type="checkbox" id="todo-priority" name="todo-priority" />
+                            Mark as Priority
+                        </label>
+
+                        <button type="submit" id="save-todo">Save</button>
+                    </form>
+                </div>
+            </dialog>
             <div class="sidebar">
                 <div class="sidebar-content">
                     <div class="task-nav">

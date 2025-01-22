@@ -57,9 +57,8 @@ class TodoController {
         this.lists = [];
     }
 
-    addList(name) {
-        const newList = new List(name);
-        this.lists.push(newList);
+    addList(list) {
+        this.lists.push(list);
     }
 
     deleteList(index) {
@@ -98,29 +97,18 @@ class TodoController {
 class ScreenController {
     constructor(todoController) {
         this.todoController = todoController;
-
-        this.todayNav = document.getElementById('today-nav');
-        this.upcomingNav = document.getElementById('upcoming-nav');
-        this.importantNav = document.getElementById('important-nav');
-        this.activeNav = document.getElementById('active-nav');
-        this.completedNav = document.getElementById('completed-nav');
-
-        this.listNav = document.getElementById('list-nav');
-
-        this.newListButton = document.getElementById('new-list');
-
         this.content = document.getElementById('content-main');
-
-        this.newTodoButton = document.getElementById('new-todo');
     }
 
     init() {
         this.renderSidebar();
-        this.renderToday();
+        this.renderListContent(this.todoController.getList(0));
         this.addEventListeners();
     }
 
     renderSidebar() {
+        this.listNav = document.getElementById('list-nav');
+
         this.listNav.textContent = '';
 
         this.todoController.lists.forEach((list, index) => {
@@ -144,21 +132,21 @@ class ScreenController {
             const listElement = e.target.closest('.list');
             if (listElement) {
                 const index = parseInt(listElement.dataset.index, 10);
-                this.renderListContent(index);
+                this.renderListContent(this.todoController.getList(index));
             }
         });
     }
 
-    renderListContent(listIndex) {
+    renderListContent(list) {
         this.content.textContent = '';
 
-        const list = this.todoController.getList(listIndex);
+        this.currentList = list;
 
         this.content.appendChild(this.renderTodoHead(list.name, true));
         this.content.appendChild(this.renderTodoList(list.todos));
     }
 
-    renderTodoHead(name, includeSettings = false) {
+    renderTodoHead(name, includeSettings = false, listIndex = null) {
         const contentHead = document.createElement('div');
         contentHead.classList.add('content-head');
 
@@ -197,6 +185,14 @@ class ScreenController {
     renderTodoList(list) {
         const todoList = document.createElement('div');
         todoList.classList.add('todo-list');
+
+        if (list.length === 0) {
+            const emptyMessage = document.createElement('p');
+            emptyMessage.textContent = 'No todos to show. Add a new todo to get started!';
+            emptyMessage.classList.add('empty-message'); // Optional: Add a class for styling
+            todoList.appendChild(emptyMessage);
+            return todoList;
+        }
 
         list.forEach((todo) => {
             const todoDiv = document.createElement('div');
@@ -281,10 +277,14 @@ class ScreenController {
     }
 
     addEventListeners() {
-        this.todayNav.addEventListener('click', () =>
-            this.renderFilteredTodos('Today', (todo) => isToday(todo.dueDate))
-        );
-        this.upcomingNav.addEventListener('click', () => {
+        const todayNav = document.getElementById('today-nav');
+        const upcomingNav = document.getElementById('upcoming-nav');
+        const importantNav = document.getElementById('important-nav');
+        const activeNav = document.getElementById('active-nav');
+        const completedNav = document.getElementById('completed-nav');
+
+        todayNav.addEventListener('click', () => this.renderFilteredTodos('Today', (todo) => isToday(todo.dueDate)));
+        upcomingNav.addEventListener('click', () => {
             const today = new Date();
             const sevenDaysFromNow = addDays(today, 7);
             this.renderFilteredTodos(
@@ -292,16 +292,39 @@ class ScreenController {
                 (todo) => todo.dueDate && isWithinInterval(todo.dueDate, { start: today, end: sevenDaysFromNow })
             );
         });
-        this.importantNav.addEventListener('click', () =>
-            this.renderFilteredTodos('Important', (todo) => todo.isPriority)
-        );
-        this.activeNav.addEventListener('click', () => this.renderFilteredTodos('Active', (todo) => !todo.isComplete));
-        this.completedNav.addEventListener('click', () =>
-            this.renderFilteredTodos('Completed', (todo) => todo.isComplete)
-        );
+        importantNav.addEventListener('click', () => this.renderFilteredTodos('Important', (todo) => todo.isPriority));
+        activeNav.addEventListener('click', () => this.renderFilteredTodos('Active', (todo) => !todo.isComplete));
+        completedNav.addEventListener('click', () => this.renderFilteredTodos('Completed', (todo) => todo.isComplete));
 
-        this.newListButton.addEventListener('click', () => this.renderNewListModal());
-        this.newTodoButton.addEventListener('click', () => this.renderNewTodoModal());
+        this.TodoDialog = document.getElementById('todo-dialog');
+
+        const newTodoButton = document.getElementById('new-todo');
+        newTodoButton.addEventListener('click', () => this.renderNewTodoModal());
+
+        this.todoCloseButton = document.getElementById('todo-close-button');
+
+        this.todoCloseButton.addEventListener('click', () => this.TodoDialog.close());
+
+        const todoForm = document.getElementById('todo-form');
+        todoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveTodo();
+        });
+
+        this.ListDialog = document.getElementById('list-dialog');
+
+        const newListButton = document.getElementById('new-list');
+        newListButton.addEventListener('click', () => this.renderNewListModal());
+
+        this.listCloseButton = document.getElementById('list-close-button');
+
+        this.listCloseButton.addEventListener('click', () => this.ListDialog.close());
+
+        const listForm = document.getElementById('list-form');
+        listForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveList();
+        });
     }
 
     renderFilteredTodos(title, filterFn) {
@@ -320,12 +343,64 @@ class ScreenController {
             }
         });
     }
+
+    renderNewTodoModal() {
+        const modalTitle = document.getElementById('todo-modal-title');
+        modalTitle.textContent = 'Create a New Todo';
+        this.TodoDialog.showModal();
+    }
+
+    saveTodo() {
+        const list = this.currentList;
+
+        const titleInput = document.getElementById('todo-title');
+        const descriptionInput = document.getElementById('todo-description');
+        const dueDateInput = document.getElementById('todo-due-date');
+        const priorityInput = document.getElementById('todo-priority');
+
+        const title = titleInput.value || '';
+        const description = descriptionInput.value || '';
+        const dueDate = dueDateInput.value ? new Date(dueDateInput.value) : null;
+        const priority = priorityInput.checked || false;
+
+        const todo = new Todo(title, description, dueDate, priority);
+        list.addTodo(todo);
+
+        this.TodoDialog.close();
+        this.renderListContent(list);
+
+        titleInput.value = '';
+        descriptionInput.value = '';
+        dueDateInput.value = '';
+        priorityInput.checked = false;
+    }
+
+    renderNewListModal() {
+        const modalTitle = document.getElementById('list-modal-title');
+        modalTitle.textContent = 'Create a New List';
+        this.ListDialog.showModal();
+    }
+
+    saveList() {
+        const titleInput = document.getElementById('list-title');
+        const title = titleInput.value || '';
+        const newList = new List(title);
+        this.todoController.addList(newList);
+
+        this.ListDialog.close();
+        this.renderSidebar();
+        this.renderListContent(newList);
+
+        console.log(this.todoController.getAllLists());
+
+        titleInput.value = '';
+    }
 }
 
 const todoController = new TodoController();
 const screenController = new ScreenController(todoController);
 
-todoController.addList('Work');
+todoController.addList(new List('Work'));
 todoController.getList(0).addTodo(new Todo('Example todo', 'This is an example todo', false, false, false));
 todoController
     .getList(0)
@@ -340,7 +415,7 @@ todoController
     .addTodo(new Todo('Example todo with priority', 'This is an example todo', false, true, false));
 todoController.getList(0).addTodo(new Todo('Example completed todo', 'This is an example todo', false, false, true));
 
-todoController.addList('Hobbies');
+todoController.addList(new List('Hobbies'));
 todoController.getList(1).addTodo(new Todo('Example todo for hobbies', 'This is an example todo', false, false, false));
 
 document.addEventListener('DOMContentLoaded', () => {

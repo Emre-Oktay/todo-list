@@ -212,3 +212,48 @@ body {
     align-items: center;
     gap: 10px;
 }
+
+dialog {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    border: none;
+    justify-content: center;
+    align-items: center;
+}
+
+dialog[open] {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+}
+
+.close-button {
+    font-size: 1.7rem;
+    cursor: pointer;
+}
+
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content form input,
+.modal-content form textarea {
+    margin-bottom: 20px;
+}
