@@ -107,9 +107,11 @@ body {
 }
 
 .list-nav {
+    height: 60vh;
     display: flex;
     flex-direction: column;
     gap: 5px;
+    overflow: auto;
 }
 
 .new-list {
