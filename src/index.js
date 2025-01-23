@@ -74,24 +74,6 @@ class TodoController {
     getAllLists() {
         return this.lists;
     }
-
-    addTodoToList(listIndex, todo) {
-        if (listIndex >= 0 && listIndex < this.lists.length) {
-            this.lists[listIndex].addTodo(todo);
-        }
-    }
-
-    deleteTodoFromList(listIndex, todoIndex) {
-        if (listIndex >= 0 && listIndex < this.lists.length) {
-            this.lists[listIndex].deleteTodo(todoIndex);
-        }
-    }
-
-    updateTodoInList(listIndex, todoIndex, updatedTodo) {
-        if (listIndex >= 0 && listIndex < this.lists.length) {
-            this.lists[listIndex].updateTodo(todoIndex, updatedTodo);
-        }
-    }
 }
 
 class ScreenController {
@@ -146,7 +128,7 @@ class ScreenController {
         this.content.appendChild(this.renderTodoList(list.todos));
     }
 
-    renderTodoHead(name, includeSettings = false, listIndex = null) {
+    renderTodoHead(name, includeSettings = false) {
         const contentHead = document.createElement('div');
         contentHead.classList.add('content-head');
 
@@ -160,6 +142,7 @@ class ScreenController {
             titleSettings.src = dotsImage;
             titleSettings.alt = 'Settings';
             contentHead.appendChild(titleSettings);
+            titleSettings.addEventListener('click', () => this.renderListUpdateModal(this.currentList));
         }
 
         return contentHead;
@@ -194,7 +177,7 @@ class ScreenController {
             return todoList;
         }
 
-        list.forEach((todo) => {
+        list.forEach((todo, index) => {
             const todoDiv = document.createElement('div');
             todoDiv.classList.add('todo-item');
 
@@ -267,7 +250,10 @@ class ScreenController {
             const settingsImg = document.createElement('img');
             settingsImg.src = threeDotsImage;
             settingsImg.alt = 'Settings';
-            //Add event listener to open update todo modal here
+            settingsImg.addEventListener('click', () => {
+                this.renderTodoUpdateModal(todo, index);
+                this.currentTodo = todo;
+            });
             todoDiv.appendChild(settingsImg);
 
             todoList.appendChild(todoDiv);
@@ -303,7 +289,13 @@ class ScreenController {
 
         this.todoCloseButton = document.getElementById('todo-close-button');
 
-        this.todoCloseButton.addEventListener('click', () => this.TodoDialog.close());
+        this.todoCloseButton.addEventListener('click', () => {
+            this.TodoDialog.close();
+            const deleteButton = document.getElementById('todo-delete-button');
+            if (deleteButton) {
+                deleteButton.parentNode.removeChild(deleteButton);
+            }
+        });
 
         const todoForm = document.getElementById('todo-form');
         todoForm.addEventListener('submit', (e) => {
@@ -318,7 +310,13 @@ class ScreenController {
 
         this.listCloseButton = document.getElementById('list-close-button');
 
-        this.listCloseButton.addEventListener('click', () => this.ListDialog.close());
+        this.listCloseButton.addEventListener('click', () => {
+            this.ListDialog.close();
+            const deleteButton = document.getElementById('list-delete-button');
+            if (deleteButton) {
+                deleteButton.parentNode.removeChild(deleteButton);
+            }
+        });
 
         const listForm = document.getElementById('list-form');
         listForm.addEventListener('submit', (e) => {
@@ -351,8 +349,6 @@ class ScreenController {
     }
 
     saveTodo() {
-        const list = this.currentList;
-
         const titleInput = document.getElementById('todo-title');
         const descriptionInput = document.getElementById('todo-description');
         const dueDateInput = document.getElementById('todo-due-date');
@@ -363,11 +359,25 @@ class ScreenController {
         const dueDate = dueDateInput.value ? new Date(dueDateInput.value) : null;
         const priority = priorityInput.checked || false;
 
-        const todo = new Todo(title, description, dueDate, priority);
-        list.addTodo(todo);
+        if (this.currentTodo) {
+            this.currentTodo.title = title;
+            this.currentTodo.description = description;
+            this.currentTodo.dueDate = dueDate;
+            this.currentTodo.isPriority = priority;
+
+            this.currentTodo = null;
+
+            const deleteButton = document.getElementById('todo-delete-button');
+            if (deleteButton) {
+                deleteButton.parentNode.removeChild(deleteButton);
+            }
+        } else {
+            const todo = new Todo(title, description, dueDate, priority);
+            this.currentList.addTodo(todo);
+        }
 
         this.TodoDialog.close();
-        this.renderListContent(list);
+        this.renderListContent(this.currentList);
 
         titleInput.value = '';
         descriptionInput.value = '';
@@ -382,18 +392,89 @@ class ScreenController {
     }
 
     saveList() {
-        const titleInput = document.getElementById('list-title');
-        const title = titleInput.value || '';
-        const newList = new List(title);
-        this.todoController.addList(newList);
+        const nameInput = document.getElementById('list-name');
+        const name = nameInput.value || '';
+
+        if (this.listUpdate) {
+            this.currentList.name = name;
+            this.listUpdate = false;
+            const deleteButton = document.getElementById('list-delete-button');
+            if (deleteButton) {
+                deleteButton.parentNode.removeChild(deleteButton);
+            }
+            this.renderListContent(this.currentList);
+        } else {
+            const newList = new List(name);
+            this.todoController.addList(newList);
+            this.renderListContent(newList);
+        }
 
         this.ListDialog.close();
         this.renderSidebar();
-        this.renderListContent(newList);
 
         console.log(this.todoController.getAllLists());
 
-        titleInput.value = '';
+        nameInput.value = '';
+    }
+
+    renderTodoUpdateModal(todo, index) {
+        const modalTitle = document.getElementById('todo-modal-title');
+        modalTitle.textContent = 'Update Todo';
+
+        const titleInput = document.getElementById('todo-title');
+        const descriptionInput = document.getElementById('todo-description');
+        const dueDateInput = document.getElementById('todo-due-date');
+        const priorityInput = document.getElementById('todo-priority');
+
+        titleInput.value = todo.title;
+        descriptionInput.value = todo.description;
+        dueDateInput.value = todo.dueDate ? todo.dueDate.toISOString().split('T')[0] : '';
+        priorityInput.checked = todo.isPriority;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete Todo';
+        deleteButton.classList.add('delete-button');
+        deleteButton.id = 'todo-delete-button';
+        deleteButton.addEventListener('click', () => {
+            this.currentList.deleteTodo(index);
+            this.renderListContent(this.currentList);
+            this.TodoDialog.close();
+            const modalContent = document.getElementById('todo-modal-content');
+            modalContent.removeChild(deleteButton);
+        });
+        const modalContent = document.getElementById('todo-modal-content');
+        modalContent.appendChild(deleteButton);
+
+        this.TodoDialog.showModal();
+    }
+
+    renderListUpdateModal(list) {
+        this.listUpdate = true;
+
+        const modalTitle = document.getElementById('list-modal-title');
+        modalTitle.textContent = 'Update List';
+
+        const nameInput = document.getElementById('list-name');
+        nameInput.value = list.name;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete List';
+        deleteButton.classList.add('delete-button');
+        deleteButton.id = 'list-delete-button';
+
+        deleteButton.addEventListener('click', () => {
+            index = this.todoController.getAllLists().indexOf(list);
+            this.todoController.deleteList(index);
+            this.renderSidebar();
+            this.renderFilteredTodos('Today', (todo) => isToday(todo.dueDate));
+            this.ListDialog.close();
+            const modalContent = document.getElementById('list-modal-content');
+            modalContent.removeChild(deleteButton);
+        });
+        const modalContent = document.getElementById('list-modal-content');
+        modalContent.appendChild(deleteButton);
+
+        this.ListDialog.showModal();
     }
 }
 

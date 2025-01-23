@@ -174,10 +174,12 @@ body {
 }
 
 .todo-list {
+    height: 80vh;
     margin-top: 10px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    overflow: auto;
 }
 
 .todo-item {
@@ -256,4 +258,12 @@ dialog[open] {
 .modal-content form input,
 .modal-content form textarea {
     margin-bottom: 20px;
+}
+
+.delete-button {
+    margin-top: 10px;
+    width: 100%;
+    background-color: rgb(218, 144, 144);
+    border: 1px solid #767676;
+    border-radius: 3px;
 }
