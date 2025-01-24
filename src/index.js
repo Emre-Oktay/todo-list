@@ -1,6 +1,6 @@
-import { TodoController } from './todo-controller.js';
-import { ScreenController } from './screen-controller.js';
-import { Todo, List } from './models.js';
+import { TodoController } from './modules/todo-controller.js';
+import { ScreenController } from './modules/screen-controller.js';
+import { Todo, List } from './modules/models.js';
 import { addDays } from 'date-fns';
 
 import './styles.css';
@@ -16,7 +16,6 @@ function initializeApp() {
     workList.addTodo(new Todo('Example todo with another date', 'This is an example todo', addDays(new Date(), 2)));
     workList.addTodo(new Todo('Example todo with priority', 'This is an example todo', null, true));
     workList.addTodo(new Todo('Example completed todo', 'This is an example todo', null, false, true));
-
     todoController.addList(workList);
 
     const hobbiesList = new List('Hobbies');

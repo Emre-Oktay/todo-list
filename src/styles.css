@@ -160,8 +160,10 @@ body {
 }
 
 .content-main {
+    height: 90vh;
     padding: 20px;
     flex-grow: 1;
+    overflow: auto;
 }
 
 .content-head {
@@ -176,12 +178,10 @@ body {
 }
 
 .todo-list {
-    height: 80vh;
     margin-top: 10px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    overflow: auto;
 }
 
 .todo-item {
