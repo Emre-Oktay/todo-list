@@ -309,6 +309,7 @@ export class ScreenController {
             const todo = new Todo(title, description, dueDate, priority);
             this.currentList.addTodo(todo);
         }
+        this.todoController.saveToStorage();
 
         this.TodoDialog.close();
         this.renderListContent(this.currentList);
@@ -338,6 +339,7 @@ export class ScreenController {
 
         if (this.listUpdate) {
             this.currentList.name = name;
+            this.todoController.saveToStorage();
             this.listUpdate = false;
             this.renderListContent(this.currentList);
         } else {
@@ -372,6 +374,7 @@ export class ScreenController {
         deleteButton.id = 'todo-delete-button';
         deleteButton.addEventListener('click', () => {
             this.currentList.deleteTodo(index);
+            this.todoController.saveToStorage();
             this.renderListContent(this.currentList);
             this.TodoDialog.close();
             const modalContent = document.getElementById('todo-modal-content');

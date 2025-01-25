@@ -1,27 +1,33 @@
 import { TodoController } from './modules/todo-controller.js';
 import { ScreenController } from './modules/screen-controller.js';
+import { StorageManager } from './modules/storage.js';
 import { Todo, List } from './modules/models.js';
-import { addDays } from 'date-fns';
 
 import './styles.css';
 
-function initializeApp() {
+function initializeFirstTimeSetup() {
     const todoController = new TodoController();
+
+    if (todoController.getAllLists().length === 0) {
+        const workList = new List('Work');
+        workList.addTodo(new Todo('Welcome to your Todo App!', 'This is an example todo to help you get started.'));
+        workList.addTodo(new Todo('Explore Features', 'Try adding and updating todos.'));
+
+        const hobbiesList = new List('Hobbies');
+        hobbiesList.addTodo(new Todo('Start a New Hobby', 'Use this list to track your personal interests.'));
+
+        todoController.addList(workList);
+        todoController.addList(hobbiesList);
+
+        StorageManager.saveLists(todoController.getAllLists());
+    }
+
+    return todoController;
+}
+
+function initializeApp() {
+    const todoController = initializeFirstTimeSetup();
     const screenController = new ScreenController(todoController);
-
-    // Pre-populate with initial lists and todos
-    const workList = new List('Work');
-    workList.addTodo(new Todo('Example todo', 'This is an example todo'));
-    workList.addTodo(new Todo('Example todo with date', 'This is an example todo', new Date()));
-    workList.addTodo(new Todo('Example todo with another date', 'This is an example todo', addDays(new Date(), 2)));
-    workList.addTodo(new Todo('Example todo with priority', 'This is an example todo', null, true));
-    workList.addTodo(new Todo('Example completed todo', 'This is an example todo', null, false, true));
-    todoController.addList(workList);
-
-    const hobbiesList = new List('Hobbies');
-    hobbiesList.addTodo(new Todo('Example todo for hobbies', 'This is an example todo'));
-    todoController.addList(hobbiesList);
-
     screenController.init();
 }
 
