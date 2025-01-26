@@ -12,6 +12,7 @@ function initializeFirstTimeSetup() {
         const workList = new List('Work');
         workList.addTodo(new Todo('Welcome to your Todo App!', 'This is an example todo to help you get started.'));
         workList.addTodo(new Todo('Explore Features', 'Try adding and updating todos.'));
+        workList.addTodo(new Todo('Try clicking at the todos to see the details', 'Here are the todo details'));
 
         const hobbiesList = new List('Hobbies');
         hobbiesList.addTodo(new Todo('Start a New Hobby', 'Use this list to track your personal interests.'));

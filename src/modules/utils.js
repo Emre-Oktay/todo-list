@@ -8,6 +8,7 @@ import dateImage from '../assets/calendar.svg';
 import priorityImage from '../assets/flag.svg';
 import priorityCheckImage from '../assets/flag-red.svg';
 import threeDotsImage from '../assets/three-dots.svg';
+import plusImage from '../assets/plus.svg';
 
 export const FilterTypes = {
     TODAY: (todo) => isToday(todo.dueDate),
@@ -30,4 +31,5 @@ export const Icons = {
     PRIORITY: priorityImage,
     PRIORITY_CHECK: priorityCheckImage,
     THREE_DOTS: threeDotsImage,
+    PLUS: plusImage,
 };

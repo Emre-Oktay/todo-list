@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 export class ScreenController {
     constructor(todoController) {
         this.todoController = todoController;
-        this.content = document.getElementById('content-main');
+        this.content = document.getElementById('content');
         this.currentList = null;
         this.currentTodo = null;
     }
@@ -49,11 +49,15 @@ export class ScreenController {
 
     renderListContent(list) {
         this.content.textContent = '';
+        const contentMain = document.createElement('div');
+        contentMain.classList.add('content-main');
 
         this.currentList = list;
 
-        this.content.appendChild(this.renderTodoHead(list.name, true));
-        this.content.appendChild(this.renderTodoList(list.todos));
+        contentMain.appendChild(this.renderTodoHead(list.name, true));
+        contentMain.appendChild(this.renderTodoList(list.todos));
+        this.content.appendChild(contentMain);
+        this.content.appendChild(this.renderNewTodoButton());
     }
 
     renderTodoHead(name, includeSettings = false) {
@@ -184,10 +188,35 @@ export class ScreenController {
             });
             todoDiv.appendChild(settingsImg);
 
+            todoDiv.addEventListener('click', (e) => {
+                if (!e.target.matches('img')) {
+                    this.toggleTodoDescription(todo, todoMainDiv);
+                }
+            });
+
             todoList.appendChild(todoDiv);
         });
 
         return todoList;
+    }
+
+    renderNewTodoButton() {
+        const newTodoDiv = document.createElement('div');
+        newTodoDiv.classList.add('new-todo');
+        newTodoDiv.id = 'new-todo';
+
+        const plusImg = document.createElement('img');
+        plusImg.src = Icons.PLUS;
+        plusImg.alt = 'Create a new todo';
+        newTodoDiv.appendChild(plusImg);
+
+        const newTodoText = document.createElement('p');
+        newTodoText.textContent = 'New todo';
+        newTodoDiv.appendChild(newTodoText);
+
+        newTodoDiv.addEventListener('click', () => this.renderNewTodoModal());
+
+        return newTodoDiv;
     }
 
     addEventListeners() {
@@ -198,15 +227,12 @@ export class ScreenController {
         const completedNav = document.getElementById('completed-nav');
 
         todayNav.addEventListener('click', () => this.renderFilteredTodos('Today', FilterTypes.TODAY));
-        upcomingNav.addEventListener('click', () => this.renderFilteredTodos('Today', FilterTypes.UPCOMING));
-        importantNav.addEventListener('click', () => this.renderFilteredTodos('Today', FilterTypes.IMPORTANT));
-        activeNav.addEventListener('click', () => this.renderFilteredTodos('Today', FilterTypes.ACTIVE));
-        completedNav.addEventListener('click', () => this.renderFilteredTodos('Today', FilterTypes.COMPLETED));
+        upcomingNav.addEventListener('click', () => this.renderFilteredTodos('Upcoming', FilterTypes.UPCOMING));
+        importantNav.addEventListener('click', () => this.renderFilteredTodos('Important', FilterTypes.IMPORTANT));
+        activeNav.addEventListener('click', () => this.renderFilteredTodos('Active', FilterTypes.ACTIVE));
+        completedNav.addEventListener('click', () => this.renderFilteredTodos('Completed', FilterTypes.COMPLETED));
 
         this.TodoDialog = document.getElementById('todo-dialog');
-
-        const newTodoButton = document.getElementById('new-todo');
-        newTodoButton.addEventListener('click', () => this.renderNewTodoModal());
 
         this.todoCloseButton = document.getElementById('todo-close-button');
 
@@ -248,19 +274,22 @@ export class ScreenController {
 
     renderFilteredTodos(title, filterFn) {
         this.content.textContent = '';
+        const contentMain = document.createElement('div');
+        contentMain.classList.add('content-main');
         const head = this.renderTodoHead(title);
-        this.content.appendChild(head);
+        contentMain.appendChild(head);
 
         const lists = this.todoController.getAllLists();
         lists.forEach((list) => {
             const filteredTodos = list.todos.filter(filterFn);
             if (filteredTodos.length > 0) {
                 const subHead = this.renderTodoSubHead(list.name);
-                this.content.appendChild(subHead);
+                contentMain.appendChild(subHead);
                 const todoList = this.renderTodoList(filteredTodos);
-                this.content.appendChild(todoList);
+                contentMain.appendChild(todoList);
             }
         });
+        this.content.appendChild(contentMain);
     }
 
     renderNewTodoModal() {
@@ -413,5 +442,17 @@ export class ScreenController {
         modalContent.appendChild(deleteButton);
 
         this.ListDialog.showModal();
+    }
+
+    toggleTodoDescription(todo, todoMainDiv) {
+        const existingDescription = todoMainDiv.querySelector('.todo-description');
+        if (!existingDescription) {
+            const todoDescription = document.createElement('p');
+            todoDescription.textContent = todo.description;
+            todoDescription.classList.add('todo-description');
+            todoMainDiv.appendChild(todoDescription);
+        } else {
+            todoMainDiv.removeChild(existingDescription);
+        }
     }
 }
