@@ -13,6 +13,7 @@ export class ScreenController {
     init() {
         this.renderSidebar();
         this.renderListContent(this.todoController.getList(0));
+        this.setActiveNav(document.querySelector(`.nav-item[data-index="0"]`));
         this.addEventListeners();
     }
 
@@ -23,7 +24,7 @@ export class ScreenController {
 
         this.todoController.lists.forEach((list, index) => {
             const listElement = document.createElement('div');
-            listElement.classList.add('list');
+            listElement.classList.add('nav-item');
             listElement.dataset.index = index;
 
             const listImg = document.createElement('img');
@@ -39,10 +40,11 @@ export class ScreenController {
         });
 
         this.listNav.addEventListener('click', (e) => {
-            const listElement = e.target.closest('.list');
+            const listElement = e.target.closest('.nav-item');
             if (listElement) {
                 const index = parseInt(listElement.dataset.index, 10);
                 this.renderListContent(this.todoController.getList(index));
+                this.setActiveNav(listElement);
             }
         });
     }
@@ -226,11 +228,26 @@ export class ScreenController {
         const activeNav = document.getElementById('active-nav');
         const completedNav = document.getElementById('completed-nav');
 
-        todayNav.addEventListener('click', () => this.renderFilteredTodos('Today', FilterTypes.TODAY));
-        upcomingNav.addEventListener('click', () => this.renderFilteredTodos('Upcoming', FilterTypes.UPCOMING));
-        importantNav.addEventListener('click', () => this.renderFilteredTodos('Important', FilterTypes.IMPORTANT));
-        activeNav.addEventListener('click', () => this.renderFilteredTodos('Active', FilterTypes.ACTIVE));
-        completedNav.addEventListener('click', () => this.renderFilteredTodos('Completed', FilterTypes.COMPLETED));
+        todayNav.addEventListener('click', () => {
+            this.renderFilteredTodos('Today', FilterTypes.TODAY);
+            this.setActiveNav(todayNav);
+        });
+        upcomingNav.addEventListener('click', () => {
+            this.renderFilteredTodos('Upcoming', FilterTypes.UPCOMING);
+            this.setActiveNav(upcomingNav);
+        });
+        importantNav.addEventListener('click', () => {
+            this.renderFilteredTodos('Important', FilterTypes.IMPORTANT);
+            this.setActiveNav(importantNav);
+        });
+        activeNav.addEventListener('click', () => {
+            this.renderFilteredTodos('Active', FilterTypes.ACTIVE);
+            this.setActiveNav(activeNav);
+        });
+        completedNav.addEventListener('click', () => {
+            this.renderFilteredTodos('Completed', FilterTypes.COMPLETED);
+            this.setActiveNav(completedNav);
+        });
 
         this.TodoDialog = document.getElementById('todo-dialog');
 
@@ -280,6 +297,11 @@ export class ScreenController {
         contentMain.appendChild(head);
 
         const lists = this.todoController.getAllLists();
+        if (lists.length == 0) {
+            const noListsText = document.createElement('p');
+            noListsText.textContent = 'You dont have any lists currently, Add a new list to get started!';
+            contentMain.appendChild(noListsText);
+        }
         lists.forEach((list) => {
             const filteredTodos = list.todos.filter(filterFn);
             if (filteredTodos.length > 0) {
@@ -357,6 +379,7 @@ export class ScreenController {
         const nameInput = document.getElementById('list-name');
         nameInput.value = '';
         const deleteButton = document.getElementById('list-delete-button');
+        this.listUpdate = false;
         if (deleteButton) {
             deleteButton.parentNode.removeChild(deleteButton);
         }
@@ -379,6 +402,12 @@ export class ScreenController {
 
         this.ListDialog.close();
         this.renderSidebar();
+
+        if (!this.listUpdate) {
+            const lastIndex = this.todoController.lists.length - 1;
+            const newListNav = document.querySelector(`.nav-item[data-index="${lastIndex}"]`);
+            this.setActiveNav(newListNav);
+        }
 
         this.clearListModal();
     }
@@ -434,6 +463,7 @@ export class ScreenController {
             this.todoController.deleteList(index);
             this.renderSidebar();
             this.renderFilteredTodos('Today', FilterTypes.TODAY);
+            this.setActiveNav(document.getElementById('today-nav'));
             this.ListDialog.close();
             const modalContent = document.getElementById('list-modal-content');
             modalContent.removeChild(deleteButton);
@@ -453,6 +483,18 @@ export class ScreenController {
             todoMainDiv.appendChild(todoDescription);
         } else {
             todoMainDiv.removeChild(existingDescription);
+        }
+    }
+
+    setActiveNav(element) {
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach((item) => {
+            item.classList.remove('nav-active');
+        });
+
+        if (element && element.classList.contains('nav-item')) {
+            element.classList.add('nav-active');
         }
     }
 }

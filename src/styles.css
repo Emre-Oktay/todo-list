@@ -131,15 +131,10 @@ body {
     background-color: #dfe2e7;
 }
 
-.task-nav .nav-item,
-.list-nav .list {
-    padding: 5px 5px;
-}
-
-.nav-item,
-.list {
+.nav-item {
     display: grid;
     grid-template-columns: 1fr 10fr 1fr;
+    padding: 5px 5px;
     gap: 10px;
     align-items: center;
     justify-items: center;
